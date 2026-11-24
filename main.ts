@@ -34,10 +34,16 @@ function readClipRecord(botDir: string): { url: string } {
     throw new Error(`${RECORD_NAME} does not hold a url field`);
   }
   const url = (parsed as { url: unknown }).url;
-  if (typeof url !== "string" || !url.startsWith(TIKTOK_PREFIX)) {
-    throw new Error("the url in VIDEO.json is not a TikTok address");
+  if (typeof url !== "string") {
+    throw new Error("the url in VIDEO.json is not a string");
   }
-  return { url };
+  // A stray space or newline around the address would send the grader
+  // to a page that does not exist, so tidy it before trusting it.
+  const cleaned = url.trim();
+  if (!cleaned.startsWith(TIKTOK_PREFIX) || !cleaned.includes("/video/")) {
+    throw new Error("the url in VIDEO.json is not a TikTok video address");
+  }
+  return { url: cleaned };
 }
 
 function deliverClipRecord(record: { url: string }, outDir: string): string {
